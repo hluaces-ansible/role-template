@@ -1,0 +1,100 @@
+---
+dependency:
+  name: galaxy
+  options:
+    role-file: requirements.yml
+    requirements-file: collections.yml
+driver:
+  name: docker
+lint: |
+  set -e
+  yamllint .
+  ansible-lint .
+platforms:
+  # Some example images. Delete the ones you do not use.
+  - name: centos_8
+    image: centos:8
+  - name: centos_7
+    image: 'your/docker/image/centos:7'
+    registry:
+      url: "${CI_REGISTRY-your-docker-registry.com:5050}"
+  - name: debian_10
+    image: debian:10
+  - name: debian_9
+    image: debian:9
+  - name: ubuntu_20
+    image: ubuntu:focal
+  - name: ubuntu_18
+    image: ubuntu:bionic
+
+  # These images are provisioned with systemd.
+  - name: centos_7_systemd
+    image: 'sistemas/docker/os/centos:7'
+    registry:
+      url: "${CI_REGISTRY-your-docker-registry.com:5050}"
+    command: /sbin/init
+    tmpfs: ['/run', '/tmp']
+    volumes: ['/sys/fs/cgroup:/sys/fs/cgroup:ro']
+    capabilities:
+      - SYS_ADMIN
+    security_opts:
+      - seccomp=unconfined
+      - apparmor=unconfined
+  - name: debian_10_systemd
+    image: debian:10
+    command: '/lib/systemd/systemd'
+    tmpfs: ['/run', '/tmp']
+    volumes: ['/sys/fs/cgroup:/sys/fs/cgroup:ro']
+    capabilities:
+      - SYS_ADMIN
+    security_opts:
+      - seccomp=unconfined
+      - apparmor=unconfined
+  - name: debian_9_systemd
+    image: debian:9
+    command: '/lib/systemd/systemd'
+    tmpfs: ['/run', '/tmp']
+    volumes: ['/sys/fs/cgroup:/sys/fs/cgroup:ro']
+    capabilities:
+      - SYS_ADMIN
+    security_opts:
+      - seccomp=unconfined
+      - apparmor=unconfined
+  - name: ubuntu_18_systemd
+    image: ubuntu:bionic
+    command: '/lib/systemd/systemd'
+    tmpfs: ['/run', '/tmp']
+    volumes: ['/sys/fs/cgroup:/sys/fs/cgroup:ro']
+    capabilities:
+      - SYS_ADMIN
+    security_opts:
+      - seccomp=unconfined
+      - apparmor=unconfined
+  - name: ubuntu_20_systemd
+    image: ubuntu:focal
+    command: '/lib/systemd/systemd'
+    tmpfs: ['/run', '/tmp']
+    volumes: ['/sys/fs/cgroup:/sys/fs/cgroup:ro']
+    capabilities:
+      - SYS_ADMIN
+    security_opts:
+      - seccomp=unconfined
+      - apparmor=unconfined
+provisioner:
+  name: ansible
+  log: true
+  options:
+    vv: true
+    forks: '20'
+  playbooks:
+    converge: ../../tests/test_default.yml
+  inventory:
+    links:
+      group_vars: ../../tests/group_vars
+      host_vars: ../../tests/host_vars
+  config_options:
+    defaults:
+      vault_password_file: ${PASSWORD_ANSIBLE_VAULT-/etc/ansible/vault_password}
+      strategy: ${MOLECULE_STRATEGY-linear}
+      strategy_plugins: ${MOLECULE_STRATEGY_PLUGINS}
+      force_color: true

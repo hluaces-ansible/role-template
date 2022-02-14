@@ -1,0 +1,69 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+lint: |
+  set -e
+  yamllint .
+  ansible-lint .
+platforms:
+  # Some example boxes. Delete the ones you don't use
+  - name: vagrant-centos7
+    box: centos/7
+  - name: vagrant-centos6
+    box: centos/6
+  - name: vagrant-debian10
+    box: debian/buster64
+  - name: vagrant-debian9
+    box: debian/stretch64
+  - name: vagrant-ubuntu20
+    box: ubuntu/focal64
+  - name: vagrant-ubuntu18
+    box: ubuntu/bionic64
+
+    # Some other common examples that you can takes an example to create some
+    # complex Vagrant configuration.
+    #
+    # See the whole docs at:
+    #
+    # https://molecule.readthedocs.io/en/latest/configuration.html
+    #  - name: instance-1
+    #    instance_raw_config_args:
+    #      - "vm.network 'forwarded_port', guest: 80, host: 8080"
+    #    interfaces:
+    #      - auto_config: true
+    #        network_name: private_network
+    #        type: dhcp
+    #    config_options:
+    #      synced_folder: True
+    #    box: debian/jessie64
+    #    box_version: 10.1
+    #    box_url: http://repo.example.com/images/postmerge/debian.json
+    #    memory: 1024
+    #    cpus: 1
+    #    provider_options:
+    #      gui: True
+    #    provider_raw_config_args:
+    #      - "customize ['modifyvm', :id, '--cpuexecutioncap', '50']"
+    #    provider_override_args:
+    #      - "vm.synced_folder './', '/vagrant', disabled: true, type: 'nfs'"
+    #    provision: True
+provisioner:
+  name: ansible
+  log: true
+  options:
+    vv: true
+    forks: '20'
+  playbooks:
+    converge: ../../tests/test_default.yml
+  inventory:
+    links:
+      group_vars: ../../tests/group_vars
+      host_vars: ../../tests/host_vars
+  config_options:
+    defaults:
+      vault_password_file: ${PASSWORD_ANSIBLE_VAULT-/etc/ansible/vault_password}
+      strategy: ${MOLECULE_STRATEGY-linear}
+      strategy_plugins: ${MOLECULE_STRATEGY_PLUGINS}
+      force_color: true
